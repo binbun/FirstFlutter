@@ -1,18 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:test_gf/common/widgets/custom_button.dart';
-import 'package:test_gf/common/widgets/custom_text.dart';
-import 'package:test_gf/constants/global_variables.dart';
-import 'package:test_gf/features/admin/screens/add_product_screen.dart';
-import 'package:test_gf/features/auth/services/auth_service.dart';
 
-enum Auth {
-  signIn,
-  signUp,
-}
+import 'package:flutter/material.dart';
+
+import '../../../common/widgets/loader.dart';
+import '../../../models/product.dart';
+import '../../account/widgets/single_product.dart';
+import '../services/admin_service.dart';
+import 'add_product_screen.dart';
 
 class PostsScreen extends StatefulWidget {
-  static const String routeName = 'posts-screen';
-
   const PostsScreen({Key? key}) : super(key: key);
 
   @override
@@ -20,21 +15,83 @@ class PostsScreen extends StatefulWidget {
 }
 
 class _PostsScreenState extends State<PostsScreen> {
+  List<Product>? products;
+  final AdminService adminService = AdminService();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchAllProducts();
+  }
+
+  fetchAllProducts() async {
+    products = await adminService.fetAllProducts(context);
+    setState(() {});
+  }
+
+  void deleteProduct(Product product, int index) {
+    adminService.deleteProduct(
+      context: context,
+      product: product,
+      onSuccess: () {
+        products!.removeAt(index);
+        setState(() {});
+      },
+    );
+  }
+
   void navigateToAddProduct() {
     Navigator.pushNamed(context, AddProductScreen.routeName);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: const Center(
-        child: Text('products'),
+    return products == null
+        ? const Loader()
+        : Scaffold(
+      body: GridView.builder(
+        itemCount: products!.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2),
+        itemBuilder: (context, index) {
+          final productData = products![index];
+          return Column(
+            children: [
+              SizedBox(
+                height: 140,
+                child: SingleProduct(
+                  image: productData.images[0],
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: Text(
+                      productData.name,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => deleteProduct(productData, index),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: navigateToAddProduct,
+        tooltip: 'Add a Product',
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation:
+      FloatingActionButtonLocation.centerFloat,
     );
   }
 }
