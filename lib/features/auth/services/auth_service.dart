@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_gf/common/widgets/bottom_bar.dart';
-import 'package:test_gf/features/home/screens/home_screen.dart';
 
 import '../../../constants/error_handling.dart';
 import '../../../constants/global_variables.dart';
